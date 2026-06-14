@@ -1,0 +1,6 @@
+/* Remove top spacing when running inside the app's WebView. */
+html.oc-webapp,
+html.oc-webapp body {
+	padding-top: 0 !important;
+	margin-top: 0 !important;
+}
