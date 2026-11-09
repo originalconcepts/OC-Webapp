@@ -2,19 +2,20 @@
 /*
   Plugin Name: OC Webapp
   Plugin URI:  http://originalconcepts.co.il
-  Description: Show web pages inside the Original Concepts mobile application (WebView), hide chosen elements in-app, and restrict coupons to app users.
+  Description: Show web pages inside the Original Concepts mobile application (WebView), hide chosen elements in-app, restrict coupons to app users, and show a "download the app" banner on the website.
   Author:      Original Concepts
   Author URI:  http://originalconcepts.co.il
   License:     GPLv2+
   Text Domain: oc_webapp
-  Version:     1.4
+  Version:     1.5
 */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // No direct access.
 }
 
-define( 'OC_WEBAPP_VERSION', '1.4' );
+define( 'OC_WEBAPP_VERSION', '1.5' );
+define( 'OC_WEBAPP_FILE', __FILE__ );
 define( 'OC_WEBAPP_USER_AGENT_SUBSTR', 'originalconcepts/1.0' );
 
 // GitHub repo that publishes releases for auto-updates. EDIT to match yours.
@@ -27,6 +28,7 @@ if ( ! defined( 'OC_WEBAPP_GH_REPO' ) ) {
 
 require_once dirname( __FILE__ ) . '/includes/class-oc-coupon-restrictions-admin.php';
 require_once dirname( __FILE__ ) . '/includes/class-oc-webapp-updater.php';
+require_once dirname( __FILE__ ) . '/includes/class-oc-webapp-banner.php';
 
 /**
  * Plugin settings, with safe defaults. Always returns the three expected keys.
@@ -192,11 +194,21 @@ function oc_webapp_settings_init() {
 function oc_webapp_sanitize_settings( $input ) {
 	$input = is_array( $input ) ? $input : array();
 
-	return array(
+	$out = array(
 		'oc_webapp_classes'          => isset( $input['oc_webapp_classes'] ) ? sanitize_text_field( $input['oc_webapp_classes'] ) : '',
 		'oc_webapp_ua'               => isset( $input['oc_webapp_ua'] ) ? sanitize_text_field( $input['oc_webapp_ua'] ) : '',
 		'oc_webapp_custom_header_ua' => isset( $input['oc_webapp_custom_header_ua'] ) ? sanitize_text_field( $input['oc_webapp_custom_header_ua'] ) : '',
 	);
+
+	// The updater's GitHub token has no field on this form; keep it across saves.
+	$saved = get_option( 'oc_webapp_settings', array() );
+	if ( isset( $input['github_token'] ) ) {
+		$out['github_token'] = sanitize_text_field( $input['github_token'] );
+	} elseif ( is_array( $saved ) && ! empty( $saved['github_token'] ) ) {
+		$out['github_token'] = $saved['github_token'];
+	}
+
+	return $out;
 }
 
 function oc_webapp_field_classes() {
@@ -253,6 +265,9 @@ function oc_webapp_boot() {
 
 	// Auto-update from GitHub releases (same mechanism as the Giorgio plugin).
 	new OC_Webapp_Updater( __FILE__, OC_WEBAPP_VERSION, OC_WEBAPP_GH_USER, OC_WEBAPP_GH_REPO );
+
+	// "Download the app" banner (website; optionally inside the app too).
+	( new OC_Webapp_Banner() )->init();
 
 	if ( class_exists( 'WC_Coupon' ) ) {
 		( new OC_Coupon_Restrictions_Admin() )->init();

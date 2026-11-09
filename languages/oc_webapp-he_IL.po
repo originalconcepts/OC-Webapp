@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: OC Webapp 1.4\n"
+"Project-Id-Version: OC Webapp 1.5\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: he_IL\n"
@@ -47,3 +47,90 @@ msgstr "בדוק עדכונים עכשיו"
 
 msgid "Permission denied."
 msgstr "אין הרשאה."
+
+msgid "Download-app banner"
+msgstr "באנר הורדת האפליקציה"
+
+msgid "A small bar that invites visitors to download the app. It detects whether the visitor is on iPhone or Android and links to the matching store."
+msgstr "פס קטן שמזמין את הגולשים להוריד את האפליקציה. הבאנר מזהה לבד אם הגולש באייפון או באנדרואיד ומפנה לחנות המתאימה."
+
+msgid "Enable"
+msgstr "הפעלה"
+
+msgid "Show the download-app banner"
+msgstr "הצג את באנר הורדת האפליקציה"
+
+msgid "Where to show"
+msgstr "איפה להציג"
+
+msgid "Mobile browser"
+msgstr "דפדפן בנייד"
+
+msgid "Desktop"
+msgstr "מחשב (דסקטופ)"
+
+msgid "Inside the app"
+msgstr "בתוך האפליקציה"
+
+msgid "Hidden"
+msgstr "לא להציג"
+
+msgid "Top of the page"
+msgstr "בראש העמוד"
+
+msgid "Bottom of the screen"
+msgstr "בתחתית המסך"
+
+msgid "App Store link (iPhone)"
+msgstr "קישור ל-App Store (אייפון)"
+
+msgid "Google Play link (Android)"
+msgstr "קישור ל-Google Play (אנדרואיד)"
+
+msgid "On a phone only the button of the matching store is shown. If that store's link is empty, the banner is not shown on that phone."
+msgstr "בטלפון מוצג רק הכפתור של החנות המתאימה למכשיר. אם הקישור לחנות הזו ריק, הבאנר לא יוצג באותו מכשיר."
+
+msgid "App icon"
+msgstr "אייקון האפליקציה"
+
+msgid "Use this image"
+msgstr "בחירה בתמונה זו"
+
+msgid "Choose image"
+msgstr "בחירת תמונה"
+
+msgid "Square image. If empty, the site icon is used."
+msgstr "תמונה ריבועית. אם ריק, יוצג אייקון האתר."
+
+msgid "Title"
+msgstr "כותרת"
+
+msgid "Text"
+msgstr "טקסט"
+
+msgid "Button text"
+msgstr "טקסט הכפתור"
+
+msgid "Leave a text field empty to use the default shown in it."
+msgstr "שדה טקסט שיישאר ריק יציג את ברירת המחדל שמופיעה בו."
+
+msgid "Button color"
+msgstr "צבע הכפתור"
+
+msgid "Show again after closing"
+msgstr "הצגה מחדש אחרי סגירה"
+
+msgid "days (0 = on the next page)"
+msgstr "ימים (0 = כבר בעמוד הבא)"
+
+msgid "Download the app"
+msgstr "הורידו את האפליקציה"
+
+msgid "Faster, easier shopping from your phone"
+msgstr "קנייה מהירה ונוחה יותר מהטלפון"
+
+msgid "Download"
+msgstr "להורדה"
+
+msgid "Close"
+msgstr "סגירה"
