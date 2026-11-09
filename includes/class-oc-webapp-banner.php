@@ -62,6 +62,7 @@ class OC_Webapp_Banner {
 			'button'      => '',
 			'color'       => '#007aff',
 			'days'        => 7,
+			'rating'      => '1',
 		);
 	}
 
@@ -125,6 +126,7 @@ class OC_Webapp_Banner {
 			'title'       => __( 'Title', 'oc_webapp' ),
 			'text'        => __( 'Text', 'oc_webapp' ),
 			'button'      => __( 'Button text', 'oc_webapp' ),
+			'rating'      => __( 'Rating stars', 'oc_webapp' ),
 			'color'       => __( 'Button color', 'oc_webapp' ),
 			'days'        => __( 'Show again after closing', 'oc_webapp' ),
 		);
@@ -148,7 +150,10 @@ class OC_Webapp_Banner {
 	public function sanitize( $input ) {
 		$input = is_array( $input ) ? $input : array();
 		$d     = self::defaults();
-		$out   = array( 'enabled' => empty( $input['enabled'] ) ? '0' : '1' );
+		$out   = array(
+			'enabled' => empty( $input['enabled'] ) ? '0' : '1',
+			'rating'  => empty( $input['rating'] ) ? '0' : '1',
+		);
 
 		foreach ( array_keys( self::contexts() ) as $key ) {
 			$value       = isset( $input[ $key ] ) ? sanitize_key( $input[ $key ] ) : '';
@@ -275,6 +280,55 @@ class OC_Webapp_Banner {
 		echo '<p class="description">' . esc_html__( 'Leave a text field empty to use the default shown in it.', 'oc_webapp' ) . '</p>';
 	}
 
+	public function field_rating() {
+		$s = self::get_settings();
+		printf(
+			'<label><input type="checkbox" name="%s" value="1" %s> %s</label>',
+			esc_attr( $this->name( 'rating' ) ),
+			checked( '1', $s['rating'], false ),
+			esc_html__( 'Show the app\'s store rating under the text', 'oc_webapp' )
+		);
+		if ( '1' !== $s['enabled'] || '1' !== $s['rating'] ) {
+			return;
+		}
+
+		// Status per store. Fetch now if the saved data is for other links.
+		$stored = OC_Webapp_Ratings::stored();
+		foreach ( array( 'ios' => $s['ios_url'], 'android' => $s['android_url'] ) as $os => $url ) {
+			if ( '' !== $url && ( ! isset( $stored[ $os ]['url'] ) || $stored[ $os ]['url'] !== $url ) ) {
+				$stored = OC_Webapp_Ratings::refresh();
+				break;
+			}
+		}
+
+		$lines = array();
+		foreach ( array( 'ios' => 'App Store', 'android' => 'Google Play' ) as $os => $store ) {
+			if ( empty( $stored[ $os ] ) ) {
+				continue;
+			}
+			$r = $stored[ $os ];
+			switch ( $r['status'] ) {
+				case 'ok':
+					/* translators: 1: average rating, 2: number of ratings */
+					$text = sprintf( __( '%1$s ★ (%2$s ratings)', 'oc_webapp' ), number_format_i18n( $r['rating'], 1 ), number_format_i18n( $r['count'] ) );
+					break;
+				case 'unsupported':
+					$text = __( 'not a store link (e.g. TestFlight), so there is no rating', 'oc_webapp' );
+					break;
+				case 'error':
+					$text = __( 'could not reach the store, will try again', 'oc_webapp' );
+					break;
+				default:
+					$text = __( 'no ratings yet', 'oc_webapp' );
+			}
+			$lines[] = '<strong>' . esc_html( $store ) . ':</strong> ' . esc_html( $text );
+		}
+		if ( $lines ) {
+			echo '<p class="description">' . implode( '<br>', $lines ) . '</p>'; // phpcs:ignore WordPress.Security.EscapeOutput -- escaped above.
+		}
+		echo '<p class="description">' . esc_html__( 'Read from the stores automatically once a day. Stars appear only once the app has ratings.', 'oc_webapp' ) . '</p>';
+	}
+
 	public function field_color() {
 		$s = self::get_settings();
 		printf( '<input type="color" name="%s" value="%s">', esc_attr( $this->name( 'color' ) ), esc_attr( $s['color'] ) );
@@ -378,9 +432,19 @@ class OC_Webapp_Banner {
 		);
 
 		$stores = array(
-			'ios'     => array( $s['ios_url'], 'App Store', self::icon_apple() ),
-			'android' => array( $s['android_url'], 'Google Play', self::icon_google_play() ),
+			'ios'     => array( $s['ios_url'], 'App Store' ),
+			'android' => array( $s['android_url'], 'Google Play' ),
 		);
+
+		// Store rating: each phone sees its own store's; desktop sees the one
+		// with more ratings.
+		$ratings = '1' === $s['rating'] ? OC_Webapp_Ratings::for_display( $s ) : array();
+		$desktop = '';
+		foreach ( $ratings as $os => $r ) {
+			if ( '' === $desktop || $r['count'] > $ratings[ $desktop ]['count'] ) {
+				$desktop = $os;
+			}
+		}
 		?>
 <div id="oc-app-banner" class="oc-ab" role="region" aria-label="<?php echo esc_attr( $title ); ?>" style="--oc-ab-color:<?php echo esc_attr( $s['color'] ); ?>" data-oc-ab="<?php echo esc_attr( wp_json_encode( $config ) ); ?>" hidden>
 	<?php if ( $icon ) : ?>
@@ -389,10 +453,17 @@ class OC_Webapp_Banner {
 	<div class="oc-ab__body">
 		<strong class="oc-ab__title"><?php echo esc_html( $title ); ?></strong>
 		<span class="oc-ab__text"><?php echo esc_html( $text ); ?></span>
+		<?php
+		foreach ( $ratings as $os => $r ) :
+			/* translators: 1: average rating, 2: number of ratings */
+			$label = sprintf( __( 'Rated %1$s out of 5, %2$s ratings', 'oc_webapp' ), number_format_i18n( $r['rating'], 1 ), number_format_i18n( $r['count'] ) );
+			?>
+		<span class="oc-ab__rating oc-ab__rating--<?php echo esc_attr( $os . ( $os === $desktop ? ' oc-ab__rating--desktop' : '' ) ); ?>" role="img" aria-label="<?php echo esc_attr( $label ); ?>"><span class="oc-ab__stars" aria-hidden="true"><span class="oc-ab__stars-fill" style="width:<?php echo esc_attr( round( $r['rating'] / 5 * 100, 1 ) ); ?>%"></span></span><span class="oc-ab__count" aria-hidden="true">(<?php echo esc_html( number_format_i18n( $r['count'] ) ); ?>)</span></span>
+		<?php endforeach; ?>
 	</div>
 	<?php foreach ( $stores as $os => $store ) : ?>
 		<?php if ( '' !== $store[0] ) : ?>
-	<a class="oc-ab__btn oc-ab__btn--<?php echo esc_attr( $os ); ?>" href="<?php echo esc_url( $store[0] ); ?>" target="_blank" rel="noopener"><?php echo $store[2]; // phpcs:ignore WordPress.Security.EscapeOutput -- static SVG. ?><span class="oc-ab__label"><?php echo esc_html( $button ); ?></span><span class="oc-ab__store"><?php echo esc_html( $store[1] ); ?></span></a>
+	<a class="oc-ab__btn oc-ab__btn--<?php echo esc_attr( $os ); ?>" href="<?php echo esc_url( $store[0] ); ?>" target="_blank" rel="noopener"><span class="oc-ab__label"><?php echo esc_html( $button ); ?></span><span class="oc-ab__store"><?php echo esc_html( $store[1] ); ?></span></a>
 		<?php endif; ?>
 	<?php endforeach; ?>
 	<button type="button" class="oc-ab__close" aria-label="<?php echo esc_attr__( 'Close', 'oc_webapp' ); ?>"><svg viewBox="0 0 12 12" aria-hidden="true" focusable="false"><path d="M1 1l10 10M11 1L1 11" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>
@@ -413,19 +484,5 @@ class OC_Webapp_Banner {
 		} else {
 			echo '<script id="oc-app-banner-js" data-cfasync="false" data-no-optimize="1" data-no-defer="1" nowprocket>' . $js . "</script>\n"; // phpcs:ignore WordPress.Security.EscapeOutput
 		}
-	}
-
-	/**
-	 * @return string
-	 */
-	private static function icon_apple() {
-		return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg>';
-	}
-
-	/**
-	 * @return string
-	 */
-	private static function icon_google_play() {
-		return '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M22.018 13.298l-3.919 2.218-3.515-3.493 3.543-3.521 3.891 2.202a1.49 1.49 0 0 1 0 2.594zM1.337.924a1.486 1.486 0 0 0-.112.568v21.017c0 .217.045.419.124.6l11.155-11.087L1.337.924zm12.207 10.065l3.258-3.238L3.45.195a1.466 1.466 0 0 0-.946-.179l11.04 10.973zm0 2.067l-11 10.933c.298.036.612-.016.906-.183l13.324-7.54-3.23-3.21z"/></svg>';
 	}
 }

@@ -1,6 +1,6 @@
 msgid ""
 msgstr ""
-"Project-Id-Version: OC Webapp 1.5\n"
+"Project-Id-Version: OC Webapp 1.7.1\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Language: he_IL\n"
@@ -134,3 +134,27 @@ msgstr "להורדה"
 
 msgid "Close"
 msgstr "סגירה"
+
+msgid "Rating stars"
+msgstr "כוכבי דירוג"
+
+msgid "Show the app's store rating under the text"
+msgstr "הצג את דירוג האפליקציה בחנות מתחת לטקסט"
+
+msgid "%1$s ★ (%2$s ratings)"
+msgstr "%1$s ★ (%2$s דירוגים)"
+
+msgid "not a store link (e.g. TestFlight), so there is no rating"
+msgstr "זה לא קישור לחנות (למשל TestFlight), ולכן אין דירוג"
+
+msgid "could not reach the store, will try again"
+msgstr "לא הצלחנו להתחבר לחנות, ננסה שוב"
+
+msgid "no ratings yet"
+msgstr "עדיין אין דירוגים"
+
+msgid "Read from the stores automatically once a day. Stars appear only once the app has ratings."
+msgstr "הדירוג נמשך מהחנויות אוטומטית פעם ביום. הכוכבים יופיעו רק כשיהיו לאפליקציה דירוגים."
+
+msgid "Rated %1$s out of 5, %2$s ratings"
+msgstr "דירוג %1$s מתוך 5, %2$s דירוגים"

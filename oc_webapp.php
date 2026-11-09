@@ -7,14 +7,14 @@
   Author URI:  http://originalconcepts.co.il
   License:     GPLv2+
   Text Domain: oc_webapp
-  Version:     1.5
+  Version:     1.7.1
 */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit; // No direct access.
 }
 
-define( 'OC_WEBAPP_VERSION', '1.5' );
+define( 'OC_WEBAPP_VERSION', '1.7.1' );
 define( 'OC_WEBAPP_FILE', __FILE__ );
 define( 'OC_WEBAPP_USER_AGENT_SUBSTR', 'originalconcepts/1.0' );
 
@@ -29,6 +29,10 @@ if ( ! defined( 'OC_WEBAPP_GH_REPO' ) ) {
 require_once dirname( __FILE__ ) . '/includes/class-oc-coupon-restrictions-admin.php';
 require_once dirname( __FILE__ ) . '/includes/class-oc-webapp-updater.php';
 require_once dirname( __FILE__ ) . '/includes/class-oc-webapp-banner.php';
+require_once dirname( __FILE__ ) . '/includes/class-oc-webapp-ratings.php';
+
+// Stop the daily store-rating refresh when the plugin is deactivated.
+register_deactivation_hook( __FILE__, array( 'OC_Webapp_Ratings', 'unschedule' ) );
 
 /**
  * Plugin settings, with safe defaults. Always returns the three expected keys.
@@ -268,6 +272,7 @@ function oc_webapp_boot() {
 
 	// "Download the app" banner (website; optionally inside the app too).
 	( new OC_Webapp_Banner() )->init();
+	( new OC_Webapp_Ratings() )->init();
 
 	if ( class_exists( 'WC_Coupon' ) ) {
 		( new OC_Coupon_Restrictions_Admin() )->init();
